@@ -2,13 +2,16 @@
   margin:0;
   padding:0;
 }
+body{
+  display: flex;
+  flex-direction: row;
+}
 #GameArea{
   height: 100vh;
-  width: 100vh;
+  width: 80vh;
   display:flex;
-  flex-direction: row;
+  flex-direction: column;
   /* justify-content: center; */
-
 }
 canvas{
   height: 100%;
@@ -23,12 +26,35 @@ canvas{
   width: 80vh;
 }
 
-player{
-  position: absolute;
-  height: calc( 80vh / 9);
-  width: calc( 80vh / 9);
-  top: calc( 80vh / 9 * 4) ;
-  left:calc( 80vh / 9 * 4) ;
-  background-color: red;
-  z-index: 1000;
+#console{
+  background-color: gray;
+  padding:10px; 
+  display: flex;
+  flex-direction: column-reverse;
+  width:calc(100% - 20px);
+  height: 100%;
+  overflow-wrap: normal;
+  overflow:hidden;
+  word-wrap: break-word;
+}
+#console > p {
+  margin : 5px;
+  color:black;
+}
+
+#side-area{
+  display: flex;
+  width:calc(100vw - 80vh);
+  height: auto;
+  background-color: lightgrey;
+}
+
+#stats{
+  display: flex;
+  height: 20vh;
+  width: 100%;
+  background-color: burlywood;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
