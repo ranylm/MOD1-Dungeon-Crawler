@@ -13,7 +13,9 @@ class GameMap{
   map: number[][]= [];
   mapDimensions: number = 0;
   rooms: Room[] = [];
-  roomCenter: {x:number,y:number,visted:boolean}[][] = [];
+  roomCenter: {x:number,y:number,
+    //visted:boolean
+  }[][] = [];
   edges: Set<string> = new Set<string>;
 
   
@@ -64,7 +66,7 @@ class GameMap{
           {
           x: (x + Math.floor((roomX2 + roomX)/2)),
           y: (y + Math.floor((roomY2 + roomY)/2)),
-          visted:false
+          //visted:false
         })
         this.addRoom(x,y, roomX,roomY, roomX2,roomY2)
       }
@@ -76,7 +78,7 @@ class GameMap{
       for (let j = 0 ; j < this.roomCenter[i].length ; j++){
         //select valid direction
         let connections = 0;
-        this.roomCenter[j][i].visted = true;
+        //this.roomCenter[j][i].visted = true;
         //find valid directons
         let validNodes : number[] = [];
         if( i > 0) validNodes.push( (i-1)*4  + j);

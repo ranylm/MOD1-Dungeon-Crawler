@@ -19,4 +19,8 @@ Validated future movement
       else will be at location [PLAYER] [MOVE] closer [AI] do nothing
 
 
-1.Make [AI] follow player first, handle interaction after prioritize player movement
+Get all valid moves
+
+Move player
+
+THEN apply valid positions iteratively

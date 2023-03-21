@@ -10,10 +10,36 @@ class Entity{
   pos: Coordinates;
   hp: number = 10;
   map: GameMap;
-  constructor(pos:Coordinates = {x:2,y:2}, name = "Default"){
+  constructor(pos:Coordinates = {x:2,y:2}, name = "Default",map){
     this.pos = pos;
     this.name = name;
+    this.map = map
   }
+
+  checkIfValidMove(key: string ): Coordinates {
+    if(key === 'w'){
+      if(this.map.map[this.pos.y-1][this.pos.x]){
+        return {x:this.pos.x,y:this.pos.y-1}
+      }
+    } else if(key === 's'){
+      if(this.map.map[this.pos.y+1][this.pos.x]){
+        return {x:this.pos.x,y:this.pos.y+1}
+      }
+    } else if(key === 'a'){
+      if(this.map.map[this.pos.y][this.pos.x-1]){
+        return {x:this.pos.x-1,y:this.pos.y}
+      }
+    } else if(key === 'd'){
+      if(this.map.map[this.pos.y][this.pos.x+1]){
+        return {x:this.pos.x+1,y:this.pos.y}
+      }
+    } else {
+      //XxXXXXXX consider removal only call render once XXXXxXXXXxXXxX
+      manager.render();
+      return false;
+    }
+  }
+
   setPos(x:number ,y:number){
     this.pos.x = x;
     this.pos.y = y;
@@ -22,9 +48,9 @@ class Entity{
 }
 
 class Enemy extends Entity{
+  validPositions:Coordinates[] = [];
   constructor(pos:Coordinates = {x:2,y:2}, name = "Default",map){
-    super(pos,name)
-    this.map = map;
+    super(pos,name,map)
   }
   inRange(playerPos:Coordinates){
     //true if in detection range else false
@@ -37,8 +63,27 @@ class Enemy extends Entity{
     }
   }
 
-  follow(){
-
+  applyMovement(allies: Enemy[] , futureplayer: Coordinates){
+    let pos=this.validPositions.pop()
+    //if player is not in position and no allies are CURRENTLY in position move into else dont
+    //
+    if(pos === undefined) return;
+    console.log(JSON.stringify(pos) != JSON.stringify(futureplayer) )
+    console.log(allies.find(e => JSON.stringify(e.pos) === JSON.stringify(pos)) === undefined)
+    if(JSON.stringify(pos) != JSON.stringify(futureplayer) 
+    && (allies.find(e => JSON.stringify(e.pos) === JSON.stringify(pos)) === undefined)
+     ) {
+      console.log("HERE")
+      this.pos = {...pos};
+    }
+    else {
+      if(this.validPositions.length != 0 ) pos = this.validPositions.pop();
+      if(JSON.stringify(pos) != JSON.stringify(futureplayer) 
+      && (allies.find(e => JSON.stringify(e.pos) === JSON.stringify(pos))=== undefined)
+       ){
+        this.pos = {...pos};
+      }
+    }
   }
 
   getPossibleMoves(playerPos:Coordinates , myPos:Coordinates):string {
@@ -63,11 +108,15 @@ class Enemy extends Entity{
   action(playerPos:Coordinates , futurecoordinates:Coordinates){
     if(this.inRange(playerPos)){
       console.log(this.name," moving to player");
-      let validMoves = this.getPossibleMoves(futurecoordinates,this.pos);
-      let validPositions = [];
-      for (const moves in validMoves){
-        if(this)
+      this.validPositions = [];
+      let validMoves = this.getPossibleMoves(playerPos,this.pos);
+      for (const moves of validMoves){
+        const check = this.checkIfValidMove(moves);
+        if(check){
+          this.validPositions.push(check);
+        }
       }
+      //console.log(this.validPositions , futurecoordinates);
     }
     //do something based on player coordinates
     //if player is [CURRENTLY] or in the [FUTURE] will be next to [ENEMY] update position
@@ -75,7 +124,9 @@ class Enemy extends Entity{
 }
 
 class Player extends Entity{
-
+  constructor(pos:Coordinates = {x:2,y:2}, name = "Player",map){
+    super(pos,name,map)
+  }
 }
 
 class EntityManager{
@@ -88,6 +139,7 @@ class EntityManager{
   //setup canvas
   createCanvas(){
     this.map.createMap(40);
+    this.player.map = this.map;
     console.log("DO NOT ADD ANYTHING MORE TO GAME MAP SEPERATE ENTITIES")
     //const canvas = document.querySelector('canvas') as HTMLCanvasElement;
     let ctx = this.renderCtx!;
@@ -160,9 +212,12 @@ class EntityManager{
     this.map.printMapToCanvas(this.renderCtx);
     //Draw all entities here
     
-    this.map.drawEntity(this.renderCtx, this.player.pos,"red");
-    this.map.drawEntity(this.renderCtx,this.enemies[0].pos,"yellow")
-    this.map.drawEntity(this.renderCtx,this.enemies[1].pos,"yellow")
+    this.map.drawEntity(this.renderCtx, this.player.pos,"green");
+    this.map.drawEntity(this.renderCtx,this.enemies[0].pos,"red")
+    this.map.drawEntity(this.renderCtx,this.enemies[1].pos,"red")
+    this.map.drawEntity(this.renderCtx,this.enemies[2].pos,"red")
+    
+    this.map.drawEntity(this.renderCtx,this.enemies[3].pos,"red")
   }
   //###TEMPORARY###########
   CreateTestEntity(){
@@ -173,6 +228,14 @@ class EntityManager{
     //not adjustacent
     pos.x-=3;
     this.enemies.push(new Enemy({...pos},"Enemy 2",this.map))
+    //RANDOM CENTERs
+    let array=this.map.roomCenter.flat(5);
+    console.log(array)
+    let x,y;
+    let randomRoom = array[Math.floor(Math.random()*array.length)]
+    this.enemies.push(new Enemy({...randomRoom},"Enemy 3",this.map))
+    randomRoom = array[Math.floor(Math.random()*array.length)]
+    this.enemies.push(new Enemy({...randomRoom},"Enemy 4",this.map))
   }
 
   //###TEMPORARY###########
@@ -185,48 +248,37 @@ class EntityManager{
     this.player.setPos(randomRoom.x, randomRoom.y);
     console.log(randomRoom.x, randomRoom.y)
     //set window size then set to player coordinates
-    this.renderCtx?.transform(100/9,0,0,100/9, 0, 0);
-    this.renderCtx?.transform(1,0,0,1, -randomRoom.x+4, -randomRoom.y+4);
+    //this.renderCtx?.transform(100/9,0,0,100/9, 0, 0);
+    //sthis.renderCtx?.transform(1,0,0,1, -randomRoom.x+4, -randomRoom.y+4);
   }
 
-  checkIfValidMove(key: string , entity:Entity): Coordinates {
-    if(key === 'w'){
-      if(this.map.map[entity.pos.y-1][entity.pos.x]){
-        return {x:entity.pos.x,y:entity.pos.y-1}
-      }
-    } else if(key === 's'){
-      if(this.map.map[entity.pos.y+1][entity.pos.x]){
-        return {x:entity.pos.x,y:entity.pos.y+1}
-      }
-    } else if(key === 'a'){
-      if(this.map.map[entity.pos.y][entity.pos.x-1]){
-        return {x:entity.pos.x-1,y:entity.pos.y}
-      }
-    } else if(key === 'd'){
-      if(this.map.map[entity.pos.y][entity.pos.x+1]){
-        return {x:entity.pos.x+1,y:entity.pos.y}
-      }
-    } else {
-      //XxXXXXXX consider removal only call render once XXXXxXXXXxXXxX
-      manager.render();
-      return false;
-    }
-  }
+
 
 
   //only update on keypress serves as update function as well
   handlekeypress(key:string){
     //check if valid move for player, return future coordinates
-    let movement = this.checkIfValidMove(key,this.player);
+    let futurePos = this.player.checkIfValidMove(key);
     //do nothing if invalid space
-    if(!movement){
+    if(!futurePos){
     } else {
-      //check if interact with entities before commiting to a move
-      //if interact block movement trigger action
-      this.enemies.forEach(e => e.action({...this.player.pos},{...movement},))
-      this.player.pos=movement;
+      //check player pos  moving into enemy
+      if(this.enemies.find(e => {
+        let bool = JSON.stringify(e.pos) === JSON.stringify(futurePos)
+        console.log(e.pos,futurePos,bool);
+        return bool;
+      }
+      ) !== undefined) {
+        return;
+      }
+      this.enemies.forEach(e => e.action({...this.player.pos},{...futurePos},))
+      //ITERATIVELY APPLY
+      this.enemies.forEach(e => e.applyMovement(this.enemies,futurePos))
+      this.enemies.forEach(e => console.log(e.pos))
+
+      this.player.pos=futurePos;
     }
-    console.log(movement)
+    console.log(futurePos)
 
     //After player actions update all AI
 
