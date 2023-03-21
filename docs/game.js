@@ -18,7 +18,7 @@ class Entity {
         UI.printToConsole(`${this.name} attacks ${target.name}.`);
     }
     getAttack() {
-        return this.atkModifiers.reduce((accumulator, currentValue) => accumulator + currentValue(), this.attack);
+        return this.atkModifiers.reduce((accumulator, currentValue) => currentValue(accumulator), this.attack);
     }
     takeDamage(damage) {
         let totaldamage = this.defModifiers.reduce((accumulator, currentValue) => currentValue(accumulator), damage);
@@ -51,7 +51,7 @@ class Entity {
         else {
             //XxXXXXXX consider removal only call render once XXXXxXXXXxXXxX
             manager.render();
-            return false;
+            return undefined;
         }
     }
     setPos(x, y) {
@@ -326,6 +326,7 @@ const manager = new EntityManager();
 manager.createCanvas();
 manager.spawnPlayer();
 manager.player.defModifiers.push((e) => e - 1);
+manager.player.atkModifiers.push((e) => e + 10);
 console.log(manager.player);
 manager.CreateTestEntity();
 manager.spawnSwarm(3);

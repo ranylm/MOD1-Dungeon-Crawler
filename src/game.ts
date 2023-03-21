@@ -16,7 +16,7 @@ class Entity{
   defModifiers: Function[] = [];
   color:string = "red";
   map: GameMap;
-  constructor(pos:Coordinates = {x:2,y:2}, name = "Default",map){
+  constructor(pos:Coordinates = {x:2,y:2}, name = "Default",map:GameMap){
     this.pos = pos;
     this.name = name;
     this.map = map
@@ -29,7 +29,7 @@ class Entity{
   }
 
   getAttack():number {
-    return this.atkModifiers.reduce((accumulator, currentValue) => accumulator + currentValue(),this.attack)
+    return this.atkModifiers.reduce((accumulator, currentValue) => currentValue(accumulator),this.attack)
   }
   takeDamage(damage: number){
     let totaldamage=this.defModifiers.reduce((accumulator, currentValue) =>  currentValue(accumulator),damage)
@@ -38,7 +38,7 @@ class Entity{
     this.hp -=totaldamage;
   }
 
-  checkIfValidMove(key: string ): Coordinates {
+  checkIfValidMove(key: string ): Coordinates | undefined{
     if(key === 'w'){
       if(this.map.map[this.pos.y-1][this.pos.x]){
         return {x:this.pos.x,y:this.pos.y-1}
@@ -58,7 +58,7 @@ class Entity{
     } else {
       //XxXXXXXX consider removal only call render once XXXXxXXXXxXXxX
       manager.render();
-      return false;
+      return undefined;
     }
   }
 
@@ -71,7 +71,7 @@ class Entity{
 
 class Enemy extends Entity{
   validPositions:Coordinates[] = [];
-  constructor(pos:Coordinates = {x:2,y:2}, name = "Default",map){
+  constructor(pos:Coordinates = {x:2,y:2}, name = "Default",map:GameMap){
     super(pos,name,map)
   }
   inRange(playerPos:Coordinates){
@@ -101,7 +101,7 @@ class Enemy extends Entity{
       if(JSON.stringify(pos) != JSON.stringify(futureplayer) 
       && (allies.find(e => JSON.stringify(e.pos) === JSON.stringify(pos))=== undefined)
        ){
-        this.pos = {...pos};
+        this.pos = {...pos} as Coordinates;
         return;
       }
       //Anti Congo Line Entropy
@@ -164,7 +164,7 @@ class Player extends Entity{
 }
 
 class Swarm extends Enemy{
-  constructor(pos,name,map){
+  constructor(pos:Coordinates,name:string,map:GameMap){
     super(pos,name,map)
     this.maxhp = 2;
     this.hp=this.maxhp;
@@ -362,6 +362,7 @@ const manager = new EntityManager();
 manager.createCanvas();
 manager.spawnPlayer();
 manager.player.defModifiers.push((e)=> e - 1 );
+manager.player.atkModifiers.push((e)=> e + 10)
 console.log(manager.player)
 manager.CreateTestEntity();
 manager.spawnSwarm(3);
