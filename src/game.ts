@@ -278,13 +278,6 @@ class EntityManager{
   }
   //###TEMPORARY###########
   CreateTestEntity(){
-    let pos = {...this.player.pos};
-    pos.x+=1;
-    //adjacent
-    this.enemies.push(new Enemy({...pos},"Enemy 1",this.map))
-    //not adjustacent
-    pos.x-=3;
-    this.enemies.push(new Enemy({...pos},"Enemy 2",this.map))
     //RANDOM CENTERs
     let array=this.map.roomCenter.flat(5);
     console.log(array)
@@ -301,6 +294,12 @@ class EntityManager{
   spawnSwarm(num:number){
     let array=this.map.roomCenter.flat(5);
     let randomRoom = array[Math.floor(Math.random()*array.length)]
+    //pick unoccupied room
+    while(JSON.stringify(randomRoom) === JSON.stringify(this.player.pos)  ||
+    this.enemies.find(e=>JSON.stringify(e.pos) === JSON.stringify(randomRoom) ) !=undefined 
+    ){
+      randomRoom = array[Math.floor(Math.random()*array.length)]
+    }
     for (let i = 0 ;i < num;i++){
       this.enemies.push(new Swarm({...randomRoom},`Swarm ${i}`,this.map))
     }
@@ -367,6 +366,14 @@ console.log(manager.player)
 manager.CreateTestEntity();
 manager.spawnSwarm(3);
 manager.spawnSwarm(5);
+manager.spawnSwarm(1);
+manager.spawnSwarm(1);
+manager.spawnSwarm(1);
+manager.spawnSwarm(1);
+manager.spawnSwarm(1);
+manager.spawnSwarm(1);
+manager.spawnSwarm(1);
+manager.spawnSwarm(1);
 manager.spawnSwarm(1);
 console.log(manager.map.printMap());
 manager.render();
