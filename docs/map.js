@@ -153,7 +153,7 @@ class GameMap {
         //console.log(this.printMap())
     }
     drawEdges(ctx) {
-        console.log(this.edges);
+        //console.log(this.edges)
         const draw = (node2, node1) => {
             let coordinate1 = this.roomCenter[Math.floor(node1 / 4)][node1 % 4];
             let coordinate2 = this.roomCenter[Math.floor(node2 / 4)][node2 % 4];
@@ -197,9 +197,9 @@ class GameMap {
             }
         }
     }
-    drawEntity(ctx, x, y, color = "red") {
+    drawEntity(ctx, pos, color = "red") {
         ctx.fillStyle = color;
-        ctx.fillRect(x, y, 1, 1);
+        ctx.fillRect(pos.x, pos.y, 1, 1);
     }
 }
 // const instance = new GameMap();

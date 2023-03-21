@@ -170,7 +170,7 @@ class GameMap{
   }
 
   drawEdges(ctx:CanvasRenderingContext2D){
-    console.log(this.edges)
+    //console.log(this.edges)
     const draw = (node2: number, node1: number)=>{
       let coordinate1 = this.roomCenter[Math.floor(node1/4)][node1%4];
       let coordinate2 = this.roomCenter[Math.floor(node2/4)][node2%4];
@@ -218,9 +218,9 @@ class GameMap{
     }
   }
 
-  drawEntity(ctx:CanvasRenderingContext2D, x:number, y:number, color:string = "red"){
+  drawEntity(ctx:CanvasRenderingContext2D, pos:Coordinates, color:string = "red"){
     ctx.fillStyle = color;
-    ctx.fillRect(x, y ,1 ,1 );
+    ctx.fillRect(pos.x, pos.y ,1 ,1 );
   }
 
 }
