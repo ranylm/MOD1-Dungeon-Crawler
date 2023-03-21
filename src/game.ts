@@ -101,7 +101,7 @@ class Enemy extends Entity{
       if(JSON.stringify(pos) != JSON.stringify(futureplayer) 
       && (allies.find(e => JSON.stringify(e.pos) === JSON.stringify(pos))=== undefined)
        ){
-        this.pos = {...pos} as Coordinates;
+        this.pos = {...pos}!;
         return;
       }
       //Anti Congo Line Entropy
@@ -146,6 +146,10 @@ class Enemy extends Entity{
         }
       }
       if(this.validPositions.find(e=>JSON.stringify(e) != JSON.stringify(futurecoordinates)) === undefined){
+        console.log("IM ATTACKING THE PLAYER");
+        //this.attackTarget(player)
+        this.validPositions = [];
+      }else if(this.validPositions.find(e=>JSON.stringify(e) != JSON.stringify(playerPos)) === undefined){
         console.log("IM ATTACKING THE PLAYER");
         this.attackTarget(player)
         this.validPositions = [];
@@ -331,7 +335,7 @@ class EntityManager{
       ) !== undefined) {
         //Attack don't move
         console.log("Player is attacking target");
-        let target = this.enemies.find(e => JSON.stringify(e.pos) === JSON.stringify(futurePos));
+        let target = this.enemies.find(e => JSON.stringify(e.pos) === JSON.stringify(futurePos))!;
         console.log("AM ATTACKIHNG",target)
         this.player.attackTarget(target);
         //delete any with no hp
@@ -341,15 +345,15 @@ class EntityManager{
           this.enemies.splice(this.enemies.indexOf(e),1);
         });
         //all Moove
+        this.enemies.forEach(e => e.action({...this.player.pos},{...futurePos!},this.player))
+        this.enemies.forEach(e => e.applyMovement(this.enemies,futurePos!))
         futurePos={...this.player.pos}
-        this.enemies.forEach(e => e.action({...this.player.pos},{...futurePos},this.player))
-        this.enemies.forEach(e => e.applyMovement(this.enemies,futurePos))
       } else{
       //All Moving
       this.renderPlayerMovement(key);
       console.log("Not Attacking")
-      this.enemies.forEach(e => e.action({...this.player.pos},{...futurePos},this.player))
-      this.enemies.forEach(e => e.applyMovement(this.enemies,futurePos))
+      this.enemies.forEach(e => e.action({...this.player.pos},{...futurePos!},this.player))
+      this.enemies.forEach(e => e.applyMovement(this.enemies,futurePos!))
       this.player.pos=futurePos;
       }
     }
@@ -362,7 +366,7 @@ const manager = new EntityManager();
 manager.createCanvas();
 manager.spawnPlayer();
 manager.player.defModifiers.push((e)=> e - 1 );
-manager.player.atkModifiers.push((e)=> e + 10)
+//manager.player.atkModifiers.push((e)=> e + 10)
 console.log(manager.player)
 manager.CreateTestEntity();
 manager.spawnSwarm(3);

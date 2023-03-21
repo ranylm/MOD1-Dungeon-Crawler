@@ -137,6 +137,11 @@ class Enemy extends Entity {
             }
             if (this.validPositions.find(e => JSON.stringify(e) != JSON.stringify(futurecoordinates)) === undefined) {
                 console.log("IM ATTACKING THE PLAYER");
+                //this.attackTarget(player)
+                this.validPositions = [];
+            }
+            else if (this.validPositions.find(e => JSON.stringify(e) != JSON.stringify(playerPos)) === undefined) {
+                console.log("IM ATTACKING THE PLAYER");
                 this.attackTarget(player);
                 this.validPositions = [];
             }
@@ -305,9 +310,9 @@ class EntityManager {
                     this.enemies.splice(this.enemies.indexOf(e), 1);
                 });
                 //all Moove
-                futurePos = Object.assign({}, this.player.pos);
                 this.enemies.forEach(e => e.action(Object.assign({}, this.player.pos), Object.assign({}, futurePos), this.player));
                 this.enemies.forEach(e => e.applyMovement(this.enemies, futurePos));
+                futurePos = Object.assign({}, this.player.pos);
             }
             else {
                 //All Moving
@@ -326,7 +331,7 @@ const manager = new EntityManager();
 manager.createCanvas();
 manager.spawnPlayer();
 manager.player.defModifiers.push((e) => e - 1);
-manager.player.atkModifiers.push((e) => e + 10);
+//manager.player.atkModifiers.push((e)=> e + 10)
 console.log(manager.player);
 manager.CreateTestEntity();
 manager.spawnSwarm(3);
