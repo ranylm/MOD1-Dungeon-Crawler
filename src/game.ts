@@ -14,6 +14,7 @@ class Entity{
   attack:number = 2;
   atkModifiers: Function[] = [];
   defModifiers: Function[] = [];
+  color:string = "red";
   map: GameMap;
   constructor(pos:Coordinates = {x:2,y:2}, name = "Default",map){
     this.pos = pos;
@@ -24,7 +25,7 @@ class Entity{
   attackTarget(target:Entity){
     const attack = this.getAttack()
     target.takeDamage(this.getAttack())
-    UI.printToConsole(`${this.name} attacks ${target.name} for ${attack} damage.`)
+    UI.printToConsole(`${this.name} attacks ${target.name}.`)
   }
 
   getAttack():number {
@@ -33,6 +34,7 @@ class Entity{
   takeDamage(damage: number){
     let totaldamage=this.defModifiers.reduce((accumulator, currentValue) =>  currentValue(accumulator),damage)
     if(totaldamage < 1) totaldamage = 1;
+    UI.printToConsole(`${this.name} takes ${totaldamage} damage.`)
     this.hp -=totaldamage;
   }
 
@@ -161,6 +163,17 @@ class Player extends Entity{
   }
 }
 
+class Swarm extends Enemy{
+  constructor(pos,name,map){
+    super(pos,name,map)
+    this.maxhp = 2;
+    this.hp=this.maxhp;
+    this.color = "orange";
+  }
+}
+
+
+
 class EntityManager{
   player: Player = new Player();
   map: GameMap = new GameMap();
@@ -258,7 +271,7 @@ class EntityManager{
     //Draw all entities here
     
     this.map.drawEntity(this.renderCtx, this.player.pos,"green");
-    this.enemies.forEach(e => this.map.drawEntity(this.renderCtx,e.pos,"red"));
+    this.enemies.forEach(e => this.map.drawEntity(this.renderCtx,e.pos,e.color));
 
     console.log(this.player.hp)
     UI.render(this.player,this.score);
@@ -280,10 +293,18 @@ class EntityManager{
     this.enemies.push(new Enemy({...randomRoom},"Enemy 3",this.map))
     randomRoom = array[Math.floor(Math.random()*array.length)]
     this.enemies.push(new Enemy({...randomRoom},"Enemy 4",this.map))
+    this.enemies.push(new Enemy({...randomRoom},"Enemy 5",this.map))
+    this.enemies.push(new Enemy({...randomRoom},"Enemy 6",this.map))
   }
 
   //###TEMPORARY###########
-
+  spawnSwarm(num:number){
+    let array=this.map.roomCenter.flat(5);
+    let randomRoom = array[Math.floor(Math.random()*array.length)]
+    for (let i = 0 ;i < num;i++){
+      this.enemies.push(new Swarm({...randomRoom},`Swarm ${i}`,this.map))
+    }
+  }
   spawnPlayer(){
     let array=this.map.roomCenter.flat(5);
     let x,y;
@@ -341,7 +362,12 @@ class EntityManager{
 const manager = new EntityManager();
 manager.createCanvas();
 manager.spawnPlayer();
+manager.player.defModifiers.push((e)=> e - 1 );
+console.log(manager.player)
 manager.CreateTestEntity();
+manager.spawnSwarm(3);
+manager.spawnSwarm(5);
+manager.spawnSwarm(1);
 console.log(manager.map.printMap());
 manager.render();
 

@@ -7,6 +7,7 @@ class Entity {
         this.attack = 2;
         this.atkModifiers = [];
         this.defModifiers = [];
+        this.color = "red";
         this.pos = pos;
         this.name = name;
         this.map = map;
@@ -14,7 +15,7 @@ class Entity {
     attackTarget(target) {
         const attack = this.getAttack();
         target.takeDamage(this.getAttack());
-        UI.printToConsole(`${this.name} attacks ${target.name} for ${attack} damage.`);
+        UI.printToConsole(`${this.name} attacks ${target.name}.`);
     }
     getAttack() {
         return this.atkModifiers.reduce((accumulator, currentValue) => accumulator + currentValue(), this.attack);
@@ -23,6 +24,7 @@ class Entity {
         let totaldamage = this.defModifiers.reduce((accumulator, currentValue) => currentValue(accumulator), damage);
         if (totaldamage < 1)
             totaldamage = 1;
+        UI.printToConsole(`${this.name} takes ${totaldamage} damage.`);
         this.hp -= totaldamage;
     }
     checkIfValidMove(key) {
@@ -149,6 +151,14 @@ class Player extends Entity {
         super(pos, name, map);
     }
 }
+class Swarm extends Enemy {
+    constructor(pos, name, map) {
+        super(pos, name, map);
+        this.maxhp = 2;
+        this.hp = this.maxhp;
+        this.color = "orange";
+    }
+}
 class EntityManager {
     constructor() {
         this.player = new Player();
@@ -231,7 +241,7 @@ class EntityManager {
         this.map.printMapToCanvas(this.renderCtx);
         //Draw all entities here
         this.map.drawEntity(this.renderCtx, this.player.pos, "green");
-        this.enemies.forEach(e => this.map.drawEntity(this.renderCtx, e.pos, "red"));
+        this.enemies.forEach(e => this.map.drawEntity(this.renderCtx, e.pos, e.color));
         console.log(this.player.hp);
         UI.render(this.player, this.score);
     }
@@ -252,8 +262,17 @@ class EntityManager {
         this.enemies.push(new Enemy(Object.assign({}, randomRoom), "Enemy 3", this.map));
         randomRoom = array[Math.floor(Math.random() * array.length)];
         this.enemies.push(new Enemy(Object.assign({}, randomRoom), "Enemy 4", this.map));
+        this.enemies.push(new Enemy(Object.assign({}, randomRoom), "Enemy 5", this.map));
+        this.enemies.push(new Enemy(Object.assign({}, randomRoom), "Enemy 6", this.map));
     }
     //###TEMPORARY###########
+    spawnSwarm(num) {
+        let array = this.map.roomCenter.flat(5);
+        let randomRoom = array[Math.floor(Math.random() * array.length)];
+        for (let i = 0; i < num; i++) {
+            this.enemies.push(new Swarm(Object.assign({}, randomRoom), `Swarm ${i}`, this.map));
+        }
+    }
     spawnPlayer() {
         let array = this.map.roomCenter.flat(5);
         let x, y;
@@ -308,7 +327,12 @@ class EntityManager {
 const manager = new EntityManager();
 manager.createCanvas();
 manager.spawnPlayer();
+manager.player.defModifiers.push((e) => e - 1);
+console.log(manager.player);
 manager.CreateTestEntity();
+manager.spawnSwarm(3);
+manager.spawnSwarm(5);
+manager.spawnSwarm(1);
 console.log(manager.map.printMap());
 manager.render();
 const canvas = document.querySelector('canvas');
