@@ -1,2 +1,22 @@
 (do last)1. BFS that all nodes can be reached
 2. handle third party entites
+
+
+
+
+
+Trigger Tick on keypress
+
+Validated future movement
+  do not move [PLAYER] yet
+
+[AI] determines future move(s)?
+  -run to player if in range
+  validate [AI] movement with (same) function, make it generic
+    if [INVALID] (theres a wall) do nothing?
+    if [VALID] check if interact with [PLAYER]
+      if [PLAYER] at location [ATTACK]
+      else will be at location [PLAYER] [MOVE] closer [AI] do nothing
+
+
+1.Make [AI] follow player first, handle interaction after prioritize player movement

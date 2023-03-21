@@ -80,7 +80,7 @@ class GameMap{
         //find valid directons
         let validNodes : number[] = [];
         if( i > 0) validNodes.push( (i-1)*4  + j);
-        if(i < this.roomCenter.length -1) validNodes.push( ((i+1)*4 + j );
+        if(i < this.roomCenter.length -1) validNodes.push( ((i+1)*4 + j ));
         if( j > 0 ) validNodes.push( j - 1 + (i *4) );
         if( j < this.roomCenter[i].length -1) validNodes.push( j + 1 +(i *4) )
         //console.log("DIRECTIONS=" , validNodes)

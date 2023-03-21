@@ -6,7 +6,9 @@ class Entity {
     }
 }
 class Enemy extends Entity {
-    action(playercoordinates) {
+    inRanger() {
+    }
+    action(playercoordinates, futurecoordinates) {
         //do something based on player coordinates
     }
 }
@@ -72,44 +74,51 @@ class EntityManager {
         (_a = this.renderCtx) === null || _a === void 0 ? void 0 : _a.transform(1, 0, 0, 1, 0, 0);
         //this.map.printMapToCanvas(this.renderCtx);
     }
+    //Clear and redraw everything
     render() {
+        this.renderCtx.clearRect(0, 0, manager.canvas.width, manager.canvas.height);
         this.map.printMapToCanvas(this.renderCtx);
         //Draw all entities here
         this.map.drawEntity(this.renderCtx, this.player.pos.x, this.player.pos.y, "red");
     }
     spawnPlayer() {
+        var _a, _b;
         let array = this.map.roomCenter.flat(5);
         console.log(array);
         let x, y;
         let randomRoom = array[Math.floor(Math.random() * array.length)];
         this.player.setPos(randomRoom.x, randomRoom.y);
-        //this.renderCtx?.transform(100/9,0,0,100/9, randomRoom.x, randomRoom.y);
+        console.log(randomRoom.x, randomRoom.y);
+        //set window size then set to player coordinates
+        (_a = this.renderCtx) === null || _a === void 0 ? void 0 : _a.transform(100 / 9, 0, 0, 100 / 9, 0, 0);
+        (_b = this.renderCtx) === null || _b === void 0 ? void 0 : _b.transform(1, 0, 0, 1, -randomRoom.x + 4, -randomRoom.y + 4);
     }
     checkIfValidMove(key) {
         if (key === 'w') {
             if (this.map.map[this.player.pos.y - 1][this.player.pos.x]) {
-                return [this.player.pos.x, this.player.pos.y - 1];
+                return { x: this.player.pos.x, y: this.player.pos.y - 1 };
             }
         }
         else if (key === 's') {
             if (this.map.map[this.player.pos.y + 1][this.player.pos.x]) {
                 //if true do something
-                return [this.player.pos.x, this.player.pos.y + 1];
+                return { x: this.player.pos.x, y: this.player.pos.y + 1 };
             }
         }
         else if (key === 'a') {
             if (this.map.map[this.player.pos.y][this.player.pos.x - 1]) {
                 //if true do something
-                return [this.player.pos.x - 1, this.player.pos.y];
+                return { x: this.player.pos.x - 1, y: this.player.pos.y };
             }
         }
         else if (key === 'd') {
             if (this.map.map[this.player.pos.y][this.player.pos.x + 1]) {
                 //if true do something
-                return [this.player.pos.x + 1, this.player.pos.y];
+                return { x: this.player.pos.x + 1, y: this.player.pos.y };
             }
         }
         else {
+            //XxXXXXXX consider removal only call render once XXXXxXXXXxXXxX
             manager.render();
             return false;
         }
@@ -124,7 +133,7 @@ class EntityManager {
         else {
             //check if interact with entities before commiting to a move
             //if interact block movement trigger action
-            this.player.pos = { x: movement[0], y: movement[1] };
+            this.player.pos = movement;
         }
         console.log(movement);
         //After player actions update all AI
@@ -145,7 +154,6 @@ window.addEventListener('keydown', (e) => {
     //   return;
     // }
     keypressed = true;
-    manager.renderCtx.clearRect(0, 0, manager.canvas.width, manager.canvas.height);
     if (e.key === 'w') {
         manager.handlekeypress(e.key);
     }

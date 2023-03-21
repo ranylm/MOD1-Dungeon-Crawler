@@ -1,11 +1,22 @@
+type Coordinates= {
+  x:number
+  y:number
+}
+
+
+
 class Entity{
-  pos: {x:number,y:number} = {x:2,y:2}
+  pos: Coordinates = {x:2,y:2}
   hp: number = 10;
 }
 
 class Enemy extends Entity{
 
-  action(playercoordinates){
+  inRanger(){
+
+  }
+  follow()
+  action(playercoordinates:Coordinates , futurecoordinates:Coordinates){
     //do something based on player coordinates
   }
 }
@@ -28,7 +39,7 @@ class EntityManager{
     this.map.createMap(40);
     console.log("DO NOT ADD ANYTHING MORE TO GAME MAP SEPERATE ENTITIES")
     //const canvas = document.querySelector('canvas') as HTMLCanvasElement;
-    let ctx = this.renderCtx;
+    let ctx = this.renderCtx!;
 
     //########################### 3d party blurry canvas fix ###########################
     //https://codepen.io/DoomGoober/pen/vYOvPJg
@@ -47,7 +58,7 @@ class EntityManager{
       myCanvas.width = dimensions.width;
       myCanvas.height = dimensions.height;
 
-      let ctx = myCanvas.getContext("2d");
+      let ctx = myCanvas.getContext("2d")!;
       let ratio = Math.min(
         myCanvas.clientWidth / originalWidth,
         myCanvas.clientHeight / originalHeight
@@ -57,11 +68,11 @@ class EntityManager{
     }
     // adapted from: https://www.npmjs.com/package/intrinsic-scale
     function getObjectFitSize(
-      contains /* true = contain, false = cover */,
-      containerWidth,
-      containerHeight,
-      width,
-      height
+      contains: boolean /* true = contain, false = cover */,
+      containerWidth: number,
+      containerHeight: number,
+      width: number,
+      height: number
     ) {
       var doRatio = width / height;
       var cRatio = containerWidth / containerHeight;
@@ -92,7 +103,9 @@ class EntityManager{
     //this.map.printMapToCanvas(this.renderCtx);
     }
   
+  //Clear and redraw everything
   render(){
+    this.renderCtx.clearRect(0, 0, manager.canvas.width, manager.canvas.height);
     this.map.printMapToCanvas(this.renderCtx);
     //Draw all entities here
     this.map.drawEntity(this.renderCtx, this.player.pos.x, this.player.pos.y,"red");
@@ -104,31 +117,34 @@ class EntityManager{
     let x,y;
     let randomRoom = array[Math.floor(Math.random()*array.length)]
     this.player.setPos(randomRoom.x, randomRoom.y);
-    //this.renderCtx?.transform(100/9,0,0,100/9, randomRoom.x, randomRoom.y);
+    console.log(randomRoom.x, randomRoom.y)
+    //set window size then set to player coordinates
+    this.renderCtx?.transform(100/9,0,0,100/9, 0, 0);
+    this.renderCtx?.transform(1,0,0,1, -randomRoom.x+4, -randomRoom.y+4);
   }
 
-
-  checkIfValidMove(key){
+  checkIfValidMove(key: string): Coordinates | false | undefined{
     if(key === 'w'){
       if(this.map.map[this.player.pos.y-1][this.player.pos.x]){
-        return [this.player.pos.x,this.player.pos.y-1]
+        return {x:this.player.pos.x,y:this.player.pos.y-1}
       }
     } else if(key === 's'){
       if(this.map.map[this.player.pos.y+1][this.player.pos.x]){
         //if true do something
-        return [this.player.pos.x,this.player.pos.y+1]
+        return {x:this.player.pos.x,y:this.player.pos.y+1}
       }
     } else if(key === 'a'){
       if(this.map.map[this.player.pos.y][this.player.pos.x-1]){
         //if true do something
-        return [this.player.pos.x-1,this.player.pos.y]
+        return {x:this.player.pos.x-1,y:this.player.pos.y}
       }
     } else if(key === 'd'){
       if(this.map.map[this.player.pos.y][this.player.pos.x+1]){
         //if true do something
-        return [this.player.pos.x+1,this.player.pos.y]
+        return {x:this.player.pos.x+1,y:this.player.pos.y}
       }
     } else {
+      //XxXXXXXX consider removal only call render once XXXXxXXXXxXXxX
       manager.render();
       return false;
     }
@@ -136,7 +152,7 @@ class EntityManager{
 
 
   //only update on keypress serves as update function as well
-  handlekeypress(key){
+  handlekeypress(key:string){
     //check if valid move for player, return future coordinates
     let movement = this.checkIfValidMove(key);
     //do nothing if invalid space
@@ -144,7 +160,7 @@ class EntityManager{
     } else {
       //check if interact with entities before commiting to a move
       //if interact block movement trigger action
-      this.player.pos={x:movement[0],y:movement[1]}
+      this.player.pos=movement;
     }
     console.log(movement)
 
@@ -172,7 +188,6 @@ window.addEventListener('keydown',(e)=>{
   //   return;
   // }
   keypressed=true;
-  manager.renderCtx.clearRect(0, 0, manager.canvas.width, manager.canvas.height);
   if(e.key === 'w'){
     manager.handlekeypress(e.key)
   } else if(e.key === 's'){
