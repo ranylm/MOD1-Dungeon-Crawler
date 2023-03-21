@@ -2,283 +2,167 @@
 class Entity {
     constructor() {
         this.pos = { x: 2, y: 2 };
+        this.hp = 10;
+    }
+}
+class Enemy extends Entity {
+    action(playercoordinates) {
+        //do something based on player coordinates
     }
 }
 class Player extends Entity {
+    setPos(x, y) {
+        this.pos.x = x;
+        this.pos.y = y;
+    }
 }
-//DO NOT ADD ANYTHING MORE SEPERATE ENTITIES
-class GameMap {
+class EntityManager {
     constructor() {
         this.player = new Player();
-        this.map = [];
-        this.mapDimensions = 0;
-        this.rooms = [];
-        this.roomCenter = [];
-        this.edges = new Set;
+        this.map = new GameMap();
+        this.canvas = document.querySelector('canvas');
+        this.renderCtx = this.canvas.getContext('2d');
     }
-    //Create Map
-    createMap(dimension) {
-        this.mapDimensions = dimension;
-        this.map = [];
-        for (let i = 0; i < dimension; i++) {
-            this.map.push(new Array(dimension).fill(0));
+    //setup canvas
+    createCanvas() {
+        var _a;
+        this.map.createMap(40);
+        console.log("DO NOT ADD ANYTHING MORE TO GAME MAP SEPERATE ENTITIES");
+        //const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+        let ctx = this.renderCtx;
+        //########################### 3d party blurry canvas fix ###########################
+        //https://codepen.io/DoomGoober/pen/vYOvPJg
+        const myCanvas = this.canvas;
+        const originalHeight = myCanvas.height;
+        const originalWidth = myCanvas.width;
+        render();
+        function render() {
+            let dimensions = getObjectFitSize(true, myCanvas.clientWidth, myCanvas.clientHeight, myCanvas.width, myCanvas.height);
+            myCanvas.width = dimensions.width;
+            myCanvas.height = dimensions.height;
+            let ctx = myCanvas.getContext("2d");
+            let ratio = Math.min(myCanvas.clientWidth / originalWidth, myCanvas.clientHeight / originalHeight);
+            ctx.scale(ratio, ratio); //adjust this!
         }
-        this.roomCenter = [...Array((dimension / 10))].map(e => Array((dimension / 10)));
-        //console.log(this.roomCenter)
-    }
-    addRoom(x, y, roomX, roomY, roomX2, roomY2) {
-        for (let j = y + roomY; j < y + roomY + roomY2; j++) {
-            for (let i = x + roomX; i < x + roomX + roomX2; i++) {
-                //console.log(i,j)
-                this.map[j][i] = 1;
-            }
-        }
-    }
-    addRooms() {
-        for (let x = 0; x < this.map.length; x += 10) {
-            for (let y = 0; y < this.map.length; y += 10) {
-                //Set corner coordinates
-                let roomX = Math.floor(Math.random() * 2) + 1;
-                let roomY = Math.floor(Math.random() * 2) + 1;
-                //Set secondary coordinates
-                let roomX2 = Math.floor(Math.random() * 3) + 7 - (roomX);
-                let roomY2 = Math.floor(Math.random() * 3) + 7 - (roomY);
-                //!!!!!!TBA!!!!!! Bound Check Rooms
-                this.rooms.push({
-                    x1: (roomX + x),
-                    y1: (roomY + y),
-                    x2: (roomX2),
-                    y2: (roomY2)
-                });
-                this.roomCenter[Math.floor((roomY + y) / 10)][Math.floor((roomX + x) / 10)] = ({
-                    x: (x + Math.floor((roomX2 + roomX) / 2)),
-                    y: (y + Math.floor((roomY2 + roomY) / 2)),
-                    visted: false
-                });
-                this.addRoom(x, y, roomX, roomY, roomX2, roomY2);
-            }
-        }
-    }
-    connectRooms() {
-        for (let i = 0; i < this.roomCenter.length; i++) {
-            for (let j = 0; j < this.roomCenter[i].length; j++) {
-                //select valid direction
-                let connections = 0;
-                this.roomCenter[j][i].visted = true;
-                //find valid directons
-                let validNodes = [];
-                if (i > 0)
-                    validNodes.push((i - 1) * 4 + j);
-                if (i < this.roomCenter.length - 1)
-                    validNodes.push(((i + 1) * 4 + j));
-                if (j > 0)
-                    validNodes.push(j - 1 + (i * 4));
-                if (j < this.roomCenter[i].length - 1)
-                    validNodes.push(j + 1 + (i * 4));
-                //console.log("DIRECTIONS=" , validNodes)
-                //find nodes with no edge
-                let noEdges = [];
-                let origin = (i * 4) + j;
-                for (const node of validNodes) {
-                    let target = node;
-                    if (this.edges.has(origin < node ? `${origin},${node}` : `${node},${origin}`)) {
-                        //if edge exists do nothing
-                        connections++;
-                    }
-                    else {
-                        noEdges.push(node);
-                    }
-                }
-                while (connections < validNodes.length - 1 && connections < 4) {
-                    //pick random edge to join
-                    let randomNode = noEdges[Math.floor(Math.random() * noEdges.length)];
-                    this.edges.add(origin < randomNode ? `${origin},${randomNode}` : `${randomNode},${origin}`);
-                    noEdges.splice(noEdges.findIndex((e) => e === randomNode), 1);
-                    connections++;
-                }
-            }
-        }
-        //console.log(this.edges)
-    }
-    //Draw Map
-    printMap() {
-        let string = '';
-        for (const row of this.map) {
-            let rowString = '';
-            for (const column of row) {
-                rowString += column;
-            }
-            rowString += '\n';
-            string += rowString;
-        }
-        return string;
-    }
-    printMapToCanvas(ctx) {
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, this.mapDimensions, this.mapDimensions);
-        this.drawRooms(ctx);
-        this.drawPlayer(ctx);
-        this.drawRoomCenters(ctx);
-        this.drawEdges(ctx);
-    }
-    //Draw paths between rooms
-    addEdges() {
-        const draw = (node1, node2) => {
-            let coordinate1 = this.roomCenter[Math.floor(node1 / 4)][node1 % 4];
-            let coordinate2 = this.roomCenter[Math.floor(node2 / 4)][node2 % 4];
-            //console.log(coordinate1,coordinate2)
-            if (Math.abs(coordinate1.x - coordinate2.x) > Math.abs(coordinate1.y - coordinate2.y)) {
-                let y = Math.floor((coordinate1.y + coordinate2.y) / 2);
-                let lower = coordinate1.x < coordinate2.x ? coordinate1.x : coordinate2.x;
-                let higher = coordinate1.x < coordinate2.x ? coordinate2.x : coordinate1.x;
-                //console.log("DRAWING",lower,higher , y);
-                for (let i = lower; i < higher; i++) {
-                    this.map[i][y] = 1;
-                }
+        // adapted from: https://www.npmjs.com/package/intrinsic-scale
+        function getObjectFitSize(contains /* true = contain, false = cover */, containerWidth, containerHeight, width, height) {
+            var doRatio = width / height;
+            var cRatio = containerWidth / containerHeight;
+            var targetWidth = 0;
+            var targetHeight = 0;
+            var test = contains ? doRatio > cRatio : doRatio < cRatio;
+            if (test) {
+                targetWidth = containerWidth;
+                targetHeight = targetWidth / doRatio;
             }
             else {
-                let x = Math.floor((coordinate1.x + coordinate2.x) / 2);
-                let lower = coordinate1.y < coordinate2.y ? coordinate1.y : coordinate2.y;
-                let higher = coordinate1.y < coordinate2.y ? coordinate2.y : coordinate1.y;
-                //console.log("DRAWING",lower,higher, x);
-                for (let i = lower; i < higher; i++) {
-                    this.map[x][i] = 1;
-                }
+                targetHeight = containerHeight;
+                targetWidth = targetHeight * doRatio;
             }
-        };
-        this.edges.forEach((edge) => {
-            let pair = edge.split(',');
-            draw.bind(this)(parseInt(pair[0]), parseInt(pair[1]));
-        });
-        //console.log(this.printMap())
-    }
-    drawEdges(ctx) {
-        const draw = (node1, node2) => {
-            let coordinate1 = this.roomCenter[Math.floor(node1 / 4)][node1 % 4];
-            let coordinate2 = this.roomCenter[Math.floor(node2 / 4)][node2 % 4];
-            //console.log(coordinate1,coordinate2)
-            if (Math.abs(coordinate1.x - coordinate2.x) > Math.abs(coordinate1.y - coordinate2.y)) {
-                let y = Math.floor((coordinate1.y + coordinate2.y) / 2);
-                let lower = coordinate1.x < coordinate2.x ? coordinate1.x : coordinate2.x;
-                let higher = coordinate1.x < coordinate2.x ? coordinate2.x : coordinate1.x;
-                //console.log("DRAWING",lower,higher , y);
-                ctx.fillStyle = "white";
-                ctx.fillRect(lower, y, higher - lower, 1);
-            }
-            else {
-                let x = Math.floor((coordinate1.x + coordinate2.x) / 2);
-                let lower = coordinate1.y < coordinate2.y ? coordinate1.y : coordinate2.y;
-                let higher = coordinate1.y < coordinate2.y ? coordinate2.y : coordinate1.y;
-                //console.log("DRAWING",lower,higher, x);
-                ctx.fillStyle = "white";
-                ctx.fillRect(x, lower, 1, higher - lower);
-            }
-        };
-        this.edges.forEach((edge) => {
-            let pair = edge.split(',');
-            draw.bind(this)(parseInt(pair[0]), parseInt(pair[1]));
-        });
-        //console.log(this.printMap())
-    }
-    drawRooms(ctx) {
-        for (const room of this.rooms) {
-            //ctx.beginPath();
-            ctx.fillStyle = "white";
-            ctx.fillRect(room.x1, room.y1, room.x2, room.y2);
-            //ctx.stroke();
+            return {
+                width: targetWidth,
+                height: targetHeight,
+                x: (containerWidth - targetWidth) / 2,
+                y: (containerHeight - targetHeight) / 2
+            };
         }
+        //###########################3d party blurry canvas fix #############################
+        //console.log(instance.rooms)
+        //console.log(instance.printMap());
+        (_a = this.renderCtx) === null || _a === void 0 ? void 0 : _a.transform(1, 0, 0, 1, 0, 0);
+        //this.map.printMapToCanvas(this.renderCtx);
     }
-    drawRoomCenters(ctx) {
-        for (const row of this.roomCenter) {
-            for (const column of row) {
-                ctx.fillStyle = "blue";
-                ctx.fillRect(column.x, column.y, 1, 1);
+    render() {
+        this.map.printMapToCanvas(this.renderCtx);
+        //Draw all entities here
+        this.map.drawEntity(this.renderCtx, this.player.pos.x, this.player.pos.y, "red");
+    }
+    spawnPlayer() {
+        let array = this.map.roomCenter.flat(5);
+        console.log(array);
+        let x, y;
+        let randomRoom = array[Math.floor(Math.random() * array.length)];
+        this.player.setPos(randomRoom.x, randomRoom.y);
+        //this.renderCtx?.transform(100/9,0,0,100/9, randomRoom.x, randomRoom.y);
+    }
+    checkIfValidMove(key) {
+        if (key === 'w') {
+            if (this.map.map[this.player.pos.y - 1][this.player.pos.x]) {
+                return [this.player.pos.x, this.player.pos.y - 1];
             }
         }
+        else if (key === 's') {
+            if (this.map.map[this.player.pos.y + 1][this.player.pos.x]) {
+                //if true do something
+                return [this.player.pos.x, this.player.pos.y + 1];
+            }
+        }
+        else if (key === 'a') {
+            if (this.map.map[this.player.pos.y][this.player.pos.x - 1]) {
+                //if true do something
+                return [this.player.pos.x - 1, this.player.pos.y];
+            }
+        }
+        else if (key === 'd') {
+            if (this.map.map[this.player.pos.y][this.player.pos.x + 1]) {
+                //if true do something
+                return [this.player.pos.x + 1, this.player.pos.y];
+            }
+        }
+        else {
+            manager.render();
+            return false;
+        }
     }
-    drawPlayer(ctx) {
-        ctx.fillStyle = "red";
-        ctx.fillRect(this.player.pos.x, this.player.pos.y, 1, 1);
+    //only update on keypress serves as update function as well
+    handlekeypress(key) {
+        //check if valid move for player, return future coordinates
+        let movement = this.checkIfValidMove(key);
+        //do nothing if invalid space
+        if (!movement) {
+        }
+        else {
+            //check if interact with entities before commiting to a move
+            //if interact block movement trigger action
+            this.player.pos = { x: movement[0], y: movement[1] };
+        }
+        console.log(movement);
+        //After player actions update all AI
+        this.render();
     }
 }
-const instance = new GameMap();
-instance.createMap(40);
-instance.addRooms();
-instance.connectRooms();
-instance.addEdges();
-console.log(instance.roomCenter);
-console.log(instance.rooms);
-console.log(instance.printMap());
-console.log(); //DO NOT ADD ANYTHING MORE TO GAME MAP SEPERATE ENTITIES)
+const manager = new EntityManager();
+manager.createCanvas();
+manager.spawnPlayer();
+console.log(manager.map.printMap());
+manager.render();
 const canvas = document.querySelector('canvas');
-const ctx = canvas.getContext("2d");
-//########################### 3d party blurry canvas fix ###########################
-const myCanvas = canvas;
-const originalHeight = myCanvas.height;
-const originalWidth = myCanvas.width;
-render();
-function render() {
-    let dimensions = getObjectFitSize(true, myCanvas.clientWidth, myCanvas.clientHeight, myCanvas.width, myCanvas.height);
-    myCanvas.width = dimensions.width;
-    myCanvas.height = dimensions.height;
-    let ctx = myCanvas.getContext("2d");
-    let ratio = Math.min(myCanvas.clientWidth / originalWidth, myCanvas.clientHeight / originalHeight);
-    ctx.scale(ratio, ratio); //adjust this!
-}
-// adapted from: https://www.npmjs.com/package/intrinsic-scale
-function getObjectFitSize(contains /* true = contain, false = cover */, containerWidth, containerHeight, width, height) {
-    var doRatio = width / height;
-    var cRatio = containerWidth / containerHeight;
-    var targetWidth = 0;
-    var targetHeight = 0;
-    var test = contains ? doRatio > cRatio : doRatio < cRatio;
-    if (test) {
-        targetWidth = containerWidth;
-        targetHeight = targetWidth / doRatio;
-    }
-    else {
-        targetHeight = containerHeight;
-        targetWidth = targetHeight * doRatio;
-    }
-    return {
-        width: targetWidth,
-        height: targetHeight,
-        x: (containerWidth - targetWidth) / 2,
-        y: (containerHeight - targetHeight) / 2
-    };
-}
-//###########################3d party blurry canvas fix #############################
-//console.log(instance.rooms)
-//console.log(instance.printMap());
-//ctx?.transform(100/9,0,0,100/9,0,0);
-//ctx?.transform(1,0,0,1,0,0);
-instance.printMapToCanvas(ctx);
-// eventlisteners for each direcetion, check validity of movement beofre
+let ctx = manager.renderCtx;
 let keypressed = false;
 window.addEventListener('keydown', (e) => {
     console.log("keypressed");
-    if (keypressed === true) {
-        return;
-    }
+    // if(keypressed === true){
+    //   return;
+    // }
     keypressed = true;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    manager.renderCtx.clearRect(0, 0, manager.canvas.width, manager.canvas.height);
     if (e.key === 'w') {
-        ctx === null || ctx === void 0 ? void 0 : ctx.transform(1, 0, 0, 1, 0, 1);
+        manager.handlekeypress(e.key);
     }
     else if (e.key === 's') {
-        ctx === null || ctx === void 0 ? void 0 : ctx.transform(1, 0, 0, 1, 0, -1);
+        manager.handlekeypress(e.key);
     }
     else if (e.key === 'a') {
-        ctx === null || ctx === void 0 ? void 0 : ctx.transform(1, 0, 0, 1, 1, 0);
+        manager.handlekeypress(e.key);
     }
     else if (e.key === 'd') {
-        ctx === null || ctx === void 0 ? void 0 : ctx.transform(1, 0, 0, 1, -1, 0);
+        manager.handlekeypress(e.key);
     }
     else {
-        instance.printMapToCanvas(ctx);
+        manager.render();
         return;
     }
-    instance.printMapToCanvas(ctx);
+    //manager.map.printMapToCanvas(manager.renderCtx);
 });
 window.addEventListener('keyup', () => {
     keypressed = false;
