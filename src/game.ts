@@ -12,8 +12,8 @@ class Entity{
   maxhp:number = 10;
   hp: number = 10;
   attack:number = 2;
-  atkModifiers: Function[] = [];
-  defModifiers: Function[] = [];
+  atkModifiers: {additive:number,multiplicative:number} = {additive:0,multiplicative:1};
+  defModifiers: {additive:number,multiplicative:number} = {additive:0,multiplicative:1};
   color:string = "red";
   map: GameMap;
   constructor(pos:Coordinates = {x:2,y:2}, name = "Default",map:GameMap){
@@ -29,10 +29,10 @@ class Entity{
   }
 
   getAttack():number {
-    return this.atkModifiers.reduce((accumulator, currentValue) => currentValue(accumulator),this.attack)
+    return (this.attack * (this.atkModifiers.multiplicative)) + this.atkModifiers.additive;
   }
   takeDamage(damage: number){
-    let totaldamage=this.defModifiers.reduce((accumulator, currentValue) =>  currentValue(accumulator),damage)
+    let totaldamage= (damage - this.defModifiers.additive)*(this.defModifiers.multiplicative);
     if(totaldamage < 1) totaldamage = 1;
     UI.printToConsole(`${this.name} takes ${totaldamage} damage.`)
     this.hp -=totaldamage;
@@ -365,7 +365,6 @@ class EntityManager{
 const manager = new EntityManager();
 manager.createCanvas();
 manager.spawnPlayer();
-manager.player.defModifiers.push((e)=> e - 1 );
 //manager.player.atkModifiers.push((e)=> e + 10)
 console.log(manager.player)
 manager.CreateTestEntity();

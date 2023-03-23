@@ -44,6 +44,7 @@ canvas{
 
 #side-area{
   display: flex;
+  flex-direction: column;
   width:calc(100vw - 80vh);
   height: auto;
   background-color: lightgrey;
@@ -57,4 +58,12 @@ canvas{
   justify-content: center;
   align-items: center;
   flex-direction: column;
+}
+
+#inventory{
+  min-height: 20vh;
+}
+
+#floor-item{
+  min-height:20vh;
 }
