@@ -273,8 +273,6 @@ class EntityManager {
         this.renderCtx.clearRect(-100, -100, 200, 200);
         this.map.printMapToCanvas(this.renderCtx);
         //================================DRAW ALL ENTITIES BELOW HERE================================
-        //draw enemies
-        this.enemies.forEach(e => this.map.drawEntity(this.renderCtx, e.pos, e.color));
         //draw drops
         for (const [key, value] of Object.entries(this.drops)) {
             let coords = key.split(',');
@@ -282,6 +280,8 @@ class EntityManager {
                 this.map.drawEntity(this.renderCtx, { x: parseInt(coords[0]), y: parseInt(coords[1]) }, "orange");
             }
         }
+        //draw enemies
+        this.enemies.forEach(e => this.map.drawEntity(this.renderCtx, e.pos, e.color));
         //draw player
         this.map.drawEntity(this.renderCtx, this.player.pos, "green");
         //console.log(this.player.hp)
