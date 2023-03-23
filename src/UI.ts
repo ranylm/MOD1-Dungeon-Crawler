@@ -33,7 +33,7 @@ class UIManager {
     console.log(JSON.stringify(player.equipment))
     for( const key of equipment){
       const ptag3 = document.createElement('p');
-      ptag3.textContent = JSON.stringify(player.equipment[key]);
+      ptag3.textContent = JSON.stringify(player.equipment[key]).replace(/[{"},:]|type/g,' ');
       this.stats.appendChild(ptag3);
     }
   }
@@ -42,7 +42,7 @@ class UIManager {
     this.drops.textContent=''
     drops.forEach( drop =>{
       let ptag = document.createElement('p');
-      ptag.textContent=JSON.stringify(drop);
+      ptag.textContent=JSON.stringify(drop).replace(/[{"},:]|type/g,' ');
       //function closure
       ptag.addEventListener('click',e => this.handlePickUpDrop(drops,drop))
       this.drops.appendChild(ptag);
@@ -54,7 +54,7 @@ class UIManager {
     console.log(inventory)
     for (const item of inventory){
       const ptag=document.createElement('p');
-      ptag?.textContent = JSON.stringify(item);
+      ptag?.textContent = JSON.stringify(item).replace(/[{"},:]|type/g,' ');
       ptag.addEventListener('click',e => this.handleUseInventory(inventory, item));
       this.inventory.appendChild(ptag)
     }

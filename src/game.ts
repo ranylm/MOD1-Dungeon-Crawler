@@ -302,7 +302,7 @@ class EntityManager{
 
   //Clear and redraw everything
   render(){
-    this.renderCtx.clearRect(0, 0, manager.canvas.width, manager.canvas.height);
+    this.renderCtx.clearRect(-100, -100, 200, 200);
     this.map.printMapToCanvas(this.renderCtx);
     //================================DRAW ALL ENTITIES BELOW HERE================================
     //draw enemies
