@@ -67,3 +67,28 @@ canvas{
 #floor-item{
   min-height:20vh;
 }
+#modal-area {
+  height: 100vh;
+  width: 100vw;
+  display:flex;
+  align-items: center;
+  justify-content: center;
+  position:absolute;
+  background-color: rgba(241, 0, 0, 0.789);
+  z-index:10000;
+}
+#modal-area div{
+  display:flex;
+  align-items: center;
+  justify-content: center;
+  width: 20vw;
+  height: 5vh;
+  background-color: white;
+} 
+.modal-area-victory{
+  background-color: rgba(32, 241, 0, 0.789) !important;
+}
+
+.disable{
+  display:none !important;
+}
