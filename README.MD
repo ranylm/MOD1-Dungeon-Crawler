@@ -1,11 +1,11 @@
 [Github Pages Demo](https://ranylm.github.io/MOD1-Dungeon-Crawler/)
 
 #### Controls
-up = w
-down = s
-left = a
-right = d
-inventory = Click to Move/Use
+- up = w
+- down = s
+- left = a
+- right = d
+- inventory = Click to Move/Use
 
 #### Summary
 This project implements a dungeon crawler with randomized level generation with combat mechanics and item based progression. Your goal is to eliminate all enemies on the floor to score points.
